@@ -91,6 +91,9 @@ func AuditAll() {
 			log.Println(err)
 		}
 
+		if len(*storageAccounts.Value) == 0{
+			continue
+		}
 		fmt.Printf("************ Storage Accounts for Group %s ************\n\n", rgName)
 		for _, acc := range *storageAccounts.Value {
 			printer.Info("Storage Account Data\n")
@@ -103,17 +106,19 @@ func AuditAll() {
 			// Print keys
 			keys, err := storageAccountsClient.ListKeys(ctx, rgName, *acc.Name)
 			if err != nil {
-				log.Println(err)
+				printer.Warning("\t\t[+] Unable to read keys\n")
 			}
 
 			var keyStrings []string
-			for _, key := range *keys.Keys {
-				keyStrings = append(keyStrings, *key.Value)
-				printer.Info("\t\tKey name: %s\n\t\tValue: %s\n\t\tPermissions: %s\n",
-					*key.KeyName,
-					*key.Value,
-					key.Permissions)
-				fmt.Println("\t\t----------------")
+			if err == nil{
+				for _, key := range *keys.Keys {
+					keyStrings = append(keyStrings, *key.Value)
+					printer.Info("\t\tKey name: %s\n\t\tValue: %s\n\t\tPermissions: %s\n",
+						*key.KeyName,
+						*key.Value,
+						key.Permissions)
+					fmt.Println("\t\t----------------")
+				}
 			}
 
 			// Get containers per storage account
@@ -140,6 +145,9 @@ func AuditAll() {
 				}
 
 				// Get blobs
+				if keyStrings == nil{
+					continue
+				}
 				blobs, err := storageapi.ListBlobs(ctx, *acc.Name, containerName, keyStrings[0])
 				if err != nil {
 					log.Fatalf("got error: %s", err)
@@ -155,6 +163,9 @@ func AuditAll() {
 				}
 			}
 
+			if keyStrings == nil{
+				continue
+			}
 			// TODO: Get tables in container
 
 			//Get file shares.
