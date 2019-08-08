@@ -13,15 +13,13 @@ import (
 )
 
 type CosmosDbState struct {
-	AccountName    string
-	QueueName      string
-	Key            string
-	All            bool
-	Stalk          bool
+	AuditAll            bool
+	Compact				bool
 }
 
 var (
-	comosdbState AuditSate
+	insecurePorts = []string{ "22", "3389", "21", "20", "23"}
+	comosdbState CosmosDbState
 
 	cosmosdbCmd = &cobra.Command{
 		Use:   "cosmosdb",
@@ -34,9 +32,8 @@ var (
 			return nil
 		},
 		Run: func (cmd *cobra.Command, args []string) {
-			if comosdbState.All {
-				state := CosmosDbState{}
-				state.Audit()
+			if comosdbState.AuditAll {
+				comosdbState.Audit()
 			}
 		},
 	}
@@ -44,17 +41,14 @@ var (
 
 func init() {
 	auditState = AuditSate{}
-	cosmosdbCmd.Flags().StringVar(&comosdbState.AccountName, "account", "", "Account Name")
-	cosmosdbCmd.Flags().StringVar(&comosdbState.QueueName, "queue", "", "Queue Name")
-	cosmosdbCmd.Flags().StringVar(&comosdbState.Key, "key", "", "Primary key for queue")
-	cosmosdbCmd.Flags().BoolVarP(&comosdbState.All, "Audit all storage options", "A", false, "-A")
-	cosmosdbCmd.Flags().BoolVarP(&comosdbState.Stalk, "Stalk queue", "S", false, "-S")
+	cosmosdbCmd.Flags().BoolVarP(&comosdbState.AuditAll, "Audit", "A", false, "-A")
+	cosmosdbCmd.Flags().BoolVarP(&comosdbState.Compact, "Compact", "C", false, "-C")
 
 	rootCmd.AddCommand(cosmosdbCmd)
 }
 
 
-func (CosmosDbState) Audit() {
+func (s *CosmosDbState) Audit() {
 	groupsClient := resources.NewGroupsClient(SubscriptionId)
 	sgClient := network.NewSecurityGroupsClient(SubscriptionId)
 	authorizer, err := auth.NewAuthorizerFromCLI()
@@ -80,7 +74,7 @@ func (CosmosDbState) Audit() {
 	}
 
 
-	columns := []string{"FROM ADDRESS", "FROM PORT", "TO ADDRESS", "TO PORT"}
+	columns := []string{"ACCESS","DIRECTION","FROM ADDRESS", "FROM PORT", "TO ADDRESS", "TO PORT", "Insecure"}
 	resultTable := printer.ResultTable{
 		Columns: columns,
 	}
@@ -98,12 +92,45 @@ func (CosmosDbState) Audit() {
 			printer.InfoHeading("\t- Security Group Name: %s\n", sgName)
 			rules := *list.Value().SecurityRules
 			for _, rule := range rules{
-				if rule.DestinationPortRange != nil{ // TODO: Check with a better propertys
-					row := []string{*rule.SourceAddressPrefix, *rule.SourcePortRange, *rule.DestinationAddressPrefix, *rule.DestinationPortRange}
+				if rule.DestinationPortRange != nil{ // TODO: Check with a better properties
+					ruleAssessment := getRuleAssessment(rule)
+					if s.Compact && ruleAssessment == ""{
+						continue
+					}
+					rule.SecurityRulePropertiesFormat
+					row := []string{string(rule.Access),string(rule.Direction), *rule.SourceAddressPrefix, *rule.SourcePortRange, *rule.DestinationAddressPrefix, *rule.DestinationPortRange, ruleAssessment}
 					resultTable.Rows = append(resultTable.Rows, row)
 				}
 			}
 			printer.PrintTable(false, &resultTable)
 		}
 	}
+}
+
+func getRuleAssessment(rule network.SecurityRule) string {
+	if string(rule.Access) == "Deny"{
+		return ""
+	}
+	if string(rule.Direction) == "Inbound" && *rule.SourceAddressPrefix == "*"{
+		if *rule.DestinationPortRange == "*"{
+			return "Insecure"
+		}
+		return "Public Access"
+	}
+	insecurePort := false
+	for _, dp := range *rule.DestinationPortRanges{
+		for _, p := range insecurePorts{
+			if p == dp{
+				insecurePort = true
+				break
+			}
+		}
+		if insecurePort{
+			break
+		}
+	}
+	if *rule.SourceAddressPrefix == "*" && insecurePort && string(rule.Direction) == "Inbound"{
+		return "Insecure"
+	}
+	return ""
 }
