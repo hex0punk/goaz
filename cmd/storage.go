@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-type AuditSate struct {
+type StorageState struct {
 	AccountName    string
 	QueueName      string
 	Key            string
@@ -24,9 +24,9 @@ type AuditSate struct {
 }
 
 var (
-	auditState AuditSate
+	storageState StorageState
 
-	queryCmd = &cobra.Command{
+	storageCmd = &cobra.Command{
 		Use:   "audit",
 		Short: "audit storage",
 		Long:  `audit storage`,
@@ -36,28 +36,27 @@ var (
 			}
 			return nil
 		},
-		Run: runAudit,
+		Run: func (cmd *cobra.Command, args []string) {
+			if storageState.All {
+				storageState.Audit()
+			}
+		},
 	}
 )
 
 func init() {
-	auditState = AuditSate{}
-	queryCmd.Flags().StringVar(&auditState.AccountName, "account", "", "Account Name")
-	queryCmd.Flags().StringVar(&auditState.QueueName, "queue", "", "Queue Name")
-	queryCmd.Flags().StringVar(&auditState.Key, "key", "", "Primary key for queue")
-	queryCmd.Flags().BoolVarP(&auditState.All, "Audit all storage options", "A", false, "-A")
-	queryCmd.Flags().BoolVarP(&auditState.Stalk, "Stalk queue", "S", false, "-S")
+	storageState = StorageState{}
+	storageCmd.Flags().StringVar(&storageState.AccountName, "account", "", "Account Name")
+	storageCmd.Flags().StringVar(&storageState.QueueName, "queue", "", "Queue Name")
+	storageCmd.Flags().StringVar(&storageState.Key, "key", "", "Primary key for queue")
+	storageCmd.Flags().BoolVarP(&storageState.All, "Audit all storage options", "A", false, "-A")
+	storageCmd.Flags().BoolVarP(&storageState.Stalk, "Stalk queue", "S", false, "-S")
 
-	rootCmd.AddCommand(queryCmd)
+	rootCmd.AddCommand(storageCmd)
 }
 
-func runAudit(cmd *cobra.Command, args []string) {
-	if auditState.All {
-		AuditAll()
-	}
-}
 
-func AuditAll() {
+func (s *StorageState) Audit() {
 	groupsClient := resources.NewGroupsClient(SubscriptionId)
 	storageAccountsClient := storage.NewAccountsClient(SubscriptionId)
 	blobStorageClient := storage.NewBlobContainersClient(SubscriptionId)

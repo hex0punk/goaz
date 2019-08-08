@@ -21,7 +21,7 @@ var (
 	insecurePorts   = []string{ "22", "3389", "21", "20", "23"}
 	nsgState      NSGState
 
-	nsgComd = &cobra.Command{
+	nsgCmd = &cobra.Command{
 		Use:   "nsg",
 		Short: "nsg",
 		Long:  `audit nsg`,
@@ -40,11 +40,11 @@ var (
 )
 
 func init() {
-	auditState = AuditSate{}
-	nsgComd.Flags().BoolVarP(&nsgState.AuditAll, "Audit", "A", false, "-A")
-	nsgComd.Flags().BoolVarP(&nsgState.Compact, "Compact", "C", false, "-C")
+	storageState = StorageState{}
+	nsgCmd.Flags().BoolVarP(&nsgState.AuditAll, "Audit", "A", false, "-A")
+	nsgCmd.Flags().BoolVarP(&nsgState.Compact, "Compact", "C", false, "-C")
 
-	rootCmd.AddCommand(nsgComd)
+	rootCmd.AddCommand(nsgCmd)
 }
 
 
