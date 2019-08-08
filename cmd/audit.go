@@ -135,7 +135,7 @@ func AuditAll() {
 				containerName := *list.Value().Name
 				printer.InfoHeading("\t\t- Container Name: %s\n", containerName)
 				switch list.Value().PublicAccess {
-					case "blob", "container":
+					case "Blob", "Container":
 					{
 						printer.Danger("\t\t- Public access type: %s\n", list.Value().PublicAccess)
 					}
