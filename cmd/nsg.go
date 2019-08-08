@@ -12,19 +12,19 @@ import (
 	"time"
 )
 
-type CosmosDbState struct {
+type NSGState struct {
 	AuditAll            bool
 	Compact				bool
 }
 
 var (
-	insecurePorts = []string{ "22", "3389", "21", "20", "23"}
-	comosdbState CosmosDbState
+	insecurePorts   = []string{ "22", "3389", "21", "20", "23"}
+	nsgState      NSGState
 
-	cosmosdbCmd = &cobra.Command{
-		Use:   "cosmosdb",
-		Short: "cosmosdb",
-		Long:  `audit cosmosdb`,
+	nsgComd = &cobra.Command{
+		Use:   "nsg",
+		Short: "nsg",
+		Long:  `audit nsg`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if SubscriptionId == "" {
 				return errors.New("please specify the subscription ID")
@@ -32,8 +32,8 @@ var (
 			return nil
 		},
 		Run: func (cmd *cobra.Command, args []string) {
-			if comosdbState.AuditAll {
-				comosdbState.Audit()
+			if nsgState.AuditAll {
+				nsgState.Audit()
 			}
 		},
 	}
@@ -41,14 +41,14 @@ var (
 
 func init() {
 	auditState = AuditSate{}
-	cosmosdbCmd.Flags().BoolVarP(&comosdbState.AuditAll, "Audit", "A", false, "-A")
-	cosmosdbCmd.Flags().BoolVarP(&comosdbState.Compact, "Compact", "C", false, "-C")
+	nsgComd.Flags().BoolVarP(&nsgState.AuditAll, "Audit", "A", false, "-A")
+	nsgComd.Flags().BoolVarP(&nsgState.Compact, "Compact", "C", false, "-C")
 
-	rootCmd.AddCommand(cosmosdbCmd)
+	rootCmd.AddCommand(nsgComd)
 }
 
 
-func (s *CosmosDbState) Audit() {
+func (s *NSGState) Audit() {
 	groupsClient := resources.NewGroupsClient(SubscriptionId)
 	sgClient := network.NewSecurityGroupsClient(SubscriptionId)
 	authorizer, err := auth.NewAuthorizerFromCLI()
@@ -97,7 +97,6 @@ func (s *CosmosDbState) Audit() {
 					if s.Compact && ruleAssessment == ""{
 						continue
 					}
-					rule.SecurityRulePropertiesFormat
 					row := []string{string(rule.Access),string(rule.Direction), *rule.SourceAddressPrefix, *rule.SourcePortRange, *rule.DestinationAddressPrefix, *rule.DestinationPortRange, ruleAssessment}
 					resultTable.Rows = append(resultTable.Rows, row)
 				}
