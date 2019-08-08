@@ -9,6 +9,8 @@ import (
 	"github.com/DharmaOfCode/goaz/utils"
 	"github.com/spf13/cobra"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -18,7 +20,7 @@ type NSGState struct {
 }
 
 var (
-	insecurePorts   = []string{ "22", "3389", "21", "20", "23"}
+	insecurePorts   = []int{ 22, 3389, 21, 20, 23}
 	nsgState      NSGState
 
 	nsgCmd = &cobra.Command{
@@ -110,26 +112,49 @@ func getRuleAssessment(rule network.SecurityRule) string {
 	if string(rule.Access) == "Deny"{
 		return ""
 	}
-	if string(rule.Direction) == "Inbound" && *rule.SourceAddressPrefix == "*"{
-		if *rule.DestinationPortRange == "*"{
-			return "Insecure"
-		}
-		return "Public Access"
-	}
+
 	insecurePort := false
-	for _, dp := range *rule.DestinationPortRanges{
-		for _, p := range insecurePorts{
-			if p == dp{
-				insecurePort = true
+	usesPortRange := false
+	var firstLast []string
+
+	if strings.Contains(*rule.DestinationPortRange, "-"){
+		usesPortRange = true
+		firstLast = strings.Split(*rule.DestinationPortRange, "-")
+	}
+
+	if usesPortRange && firstLast != nil{
+		first, _ := strconv.Atoi(firstLast[0])
+		last, _ := strconv.Atoi(firstLast[1])
+		for i := first; i <= last; i++ {
+			insecurePort = isPortInsecure(i)
+			if insecurePort{
 				break
 			}
 		}
-		if insecurePort{
-			break
+	}
+
+	if !usesPortRange{
+		i, _ := strconv.Atoi(*rule.DestinationPortRange)
+		insecurePort = isPortInsecure(i)
+	}
+
+	if string(rule.Direction) == "Inbound" && *rule.SourceAddressPrefix == "*"{
+		if *rule.DestinationPortRange == "*" || insecurePort{
+			return "Insecure"
 		}
+		return "Public Access"
 	}
 	if *rule.SourceAddressPrefix == "*" && insecurePort && string(rule.Direction) == "Inbound"{
 		return "Insecure"
 	}
 	return ""
+}
+
+func isPortInsecure(port int) bool{
+	for _, p := range insecurePorts{
+		if p == port{
+			return true
+		}
+	}
+	return false
 }
