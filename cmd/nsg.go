@@ -76,34 +76,43 @@ func (s *NSGState) Audit() {
 	}
 
 
-	columns := []string{"ACCESS","DIRECTION","FROM ADDRESS", "FROM PORT", "TO ADDRESS", "TO PORT", "Insecure"}
-	resultTable := printer.ResultTable{
-		Columns: columns,
-	}
+	columns := []string{"STATE","NAME","ACCESS","DIRECTION","FROM ADDRESS", "FROM PORT", "TO ADDRESS", "TO PORT", "EVAL	"}
 	printer.Data("********Security Groups********\n")
+	var sgList []network.SecurityGroup
 	for _, rgName := range groups {
 		sgIterator, err := sgClient.ListComplete(ctx, rgName)
 		if err != nil{
 			log.Println(err)
 		}
+
 		for list := sgIterator; list.NotDone(); err = list.NextWithContext(ctx) {
 			if err != nil {
 				log.Fatalf("got error: %s\n", err)
 			}
-			sgName := *list.Value().Name
-			printer.InfoHeading("\t- Security Group Name: %s\n", sgName)
-			rules := *list.Value().SecurityRules
-			for _, rule := range rules{
-				if rule.DestinationPortRange != nil{ // TODO: Check with a better properties
-					ruleAssessment := getRuleAssessment(rule)
-					if s.Compact && ruleAssessment == ""{
-						continue
-					}
-					row := []string{string(rule.Access),string(rule.Direction), *rule.SourceAddressPrefix, *rule.SourcePortRange, *rule.DestinationAddressPrefix, *rule.DestinationPortRange, ruleAssessment}
-					resultTable.Rows = append(resultTable.Rows, row)
+			sgList = append(sgList, list.Value())
+		}
+	}
+	for _, sg := range sgList{
+		sgName := *sg.Name
+		printer.InfoHeading("\t- Security Group Name: %s\n", sgName)
+		rules := *sg.SecurityRules
+		resultTable := printer.ResultTable{
+			Columns: columns,
+		}
+
+		for _, rule := range rules{
+
+			if rule.Name != nil{ // TODO: Check with a better properties
+				ruleAssessment := getRuleAssessment(rule)
+				if s.Compact && ruleAssessment == ""{
+					continue
 				}
+				row := []string{string(strconv.FormatInt(int64(*rule.Priority),10)),*rule.Name,string(rule.Access),string(rule.Direction), *rule.SourceAddressPrefix, *rule.SourcePortRange, *rule.DestinationAddressPrefix, *rule.DestinationPortRange, ruleAssessment}
+				resultTable.Rows = append(resultTable.Rows, row)
 			}
-			printer.PrintTable(false, &resultTable)
+		}
+		if len(resultTable.Rows) > 0 {
+			printer.PrintTable(&resultTable)
 		}
 	}
 }
@@ -140,7 +149,9 @@ func getRuleAssessment(rule network.SecurityRule) string {
 
 	if string(rule.Direction) == "Inbound" && *rule.SourceAddressPrefix == "*"{
 		if *rule.DestinationPortRange == "*" || insecurePort{
-			return "Insecure"
+			//r,_ := rule.MarshalJSON()
+			//log.Println(string(r))
+			return "Insecure Port"
 		}
 		return "Public Access"
 	}
