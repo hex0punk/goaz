@@ -20,7 +20,7 @@ var	(
 	InfoHeading = color.New(color.FgGreen).Add(color.Underline).PrintfFunc()
 )
 
-func PrintTable(verbose bool, result *ResultTable){
+func PrintTable(result *ResultTable){
 	fmt.Println()
 	PrintRuler()
 	table := tablewriter.NewWriter(os.Stdout)
@@ -30,9 +30,9 @@ func PrintTable(verbose bool, result *ResultTable){
 	var headerColors []tablewriter.Colors
 	for i, _ := range result.Columns{
 		if i == 0{
-			headerColors = append(headerColors, tablewriter.Colors{tablewriter.Bold, tablewriter.BgGreenColor})
+			headerColors = append(headerColors, tablewriter.Colors{tablewriter.Bold, tablewriter.BgHiBlueColor, tablewriter.FgHiWhiteColor})
 		} else {
-			headerColors = append(headerColors, tablewriter.Colors{tablewriter.Bold, tablewriter.BgGreenColor})
+			headerColors = append(headerColors, tablewriter.Colors{tablewriter.Bold, tablewriter.BgHiBlueColor, tablewriter.FgHiWhiteColor})
 		}
 	}
 	table.SetHeaderColor(headerColors...)
@@ -40,7 +40,7 @@ func PrintTable(verbose bool, result *ResultTable){
 	var rowColors []tablewriter.Colors
 	for i, _ := range result.Columns{
 		if i == 0{
-			rowColors = append(rowColors, tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiCyanColor})
+			rowColors = append(rowColors, tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiBlueColor})
 		} else {
 			rowColors = append(rowColors, tablewriter.Colors{tablewriter.Bold, tablewriter.FgGreenColor})
 		}
