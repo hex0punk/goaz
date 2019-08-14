@@ -42,7 +42,6 @@ var (
 )
 
 func init() {
-	storageState = StorageState{}
 	nsgCmd.Flags().BoolVarP(&nsgState.AuditAll, "Audit", "A", false, "-A")
 	nsgCmd.Flags().BoolVarP(&nsgState.Compact, "Compact", "C", false, "-C")
 
