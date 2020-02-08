@@ -24,6 +24,12 @@ To perform an audit of all storage types listed above type the following:
 goaz audit --subscriptionId <subscription ID> -A
 ```
 
+You can also specify the resource group if desired:
+
+```shell
+goaz audit --subscriptionId <subscription ID> --resourceGroup <resource group name> -A
+```
+
 #### Stalking Queues
 
 Goaz can also monitor storage queues by "peeking" into any given queue. Note that this does not remove messages from the queue. Use this functionality sparingly, as peeking into a queue can result in additional charges on your Azure account.

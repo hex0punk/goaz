@@ -18,6 +18,7 @@ import (
 type StorageState struct {
 	AccountName    string
 	QueueName      string
+	ResourceGroup  string
 	Key            string
 	All            bool
 	Stalk          bool
@@ -48,6 +49,7 @@ func init() {
 	storageState = StorageState{}
 	storageCmd.Flags().StringVar(&storageState.AccountName, "account", "", "Account Name")
 	storageCmd.Flags().StringVar(&storageState.QueueName, "queue", "", "Queue Name")
+	storageCmd.Flags().StringVar(&storageState.ResourceGroup, "resourceGroup", "", "Resource Group (optional)")
 	storageCmd.Flags().StringVar(&storageState.Key, "key", "", "Primary key for queue")
 	storageCmd.Flags().BoolVarP(&storageState.All, "Audit all storage options", "A", false, "-A")
 	storageCmd.Flags().BoolVarP(&storageState.Stalk, "Stalk queue", "S", false, "-S")
@@ -75,12 +77,16 @@ func (s *StorageState) Audit() {
 	// Get the groups first, so we can match groups and storage accounts
 	groupIterator, err := groupsClient.ListComplete(ctx, "", nil)
 	var groups []string
-	for list := groupIterator; list.NotDone(); err = list.NextWithContext(ctx) {
-		if err != nil {
-			log.Fatalf("got error: %s", err)
+	if s.ResourceGroup != ""{
+		groups = append(groups, s.ResourceGroup)
+	} else {
+		for list := groupIterator; list.NotDone(); err = list.NextWithContext(ctx) {
+			if err != nil {
+				log.Fatalf("got error: %s", err)
+			}
+			rgName := *list.Value().Name
+			groups = append(groups, rgName)
 		}
-		rgName := *list.Value().Name
-		groups = append(groups, rgName)
 	}
 
 	// Get storage accounts per resource group
