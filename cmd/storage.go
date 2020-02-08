@@ -101,6 +101,23 @@ func (s *StorageState) Audit() {
 			printer.InfoHeading("\t- Account Name: %s\n", *acc.Name)
 			printer.Info("\t- ID: %s\n", *acc.ID)
 			printer.Info("\t- Type: %s\n", *acc.Type)
+
+			//Som basic security settings audit
+			httpOnly := *acc.EnableHTTPSTrafficOnly
+			if !httpOnly{
+				printer.Danger("\t- Secure transfer not required\n")
+			} else {
+				printer.Info("\t- Secure transfer required\n")
+			}
+			netRules := *acc.NetworkRuleSet
+			if netRules.VirtualNetworkRules == nil || len(*netRules.VirtualNetworkRules) == 0{
+				printer.Danger("\t- Firewall and Network Access Not Configured\n")
+			} else {
+				if netRules.VirtualNetworkRules == nil || len(*netRules.VirtualNetworkRules) == 0{
+					printer.Info("\t- Firewall and Network Access Rules are Configured\n")
+				}
+			}
+
 			printer.Data("\t- Keys:\n")
 			// Print keys
 			keys, err := storageAccountsClient.ListKeys(ctx, rgName, *acc.Name)

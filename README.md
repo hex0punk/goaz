@@ -24,7 +24,7 @@ To perform an audit of all storage types listed above type the following:
 goaz audit --subscriptionId <subscription ID> -A
 ```
 
-#### Stalking
+#### Stalking Queues
 
 Goaz can also monitor storage queues by "peeking" into any given queue. Note that this does not remove messages from the queue. Use this functionality sparingly, as peeking into a queue can result in additional charges on your Azure account.
 
@@ -33,3 +33,12 @@ To stalk a message queue type the following:
 ```shell
 go run main.go stalk -q --subscriptionId <subscription ID> --account <storage account name> -name outqueue --key <storage account key>
 ```
+
+### Network Security Groups
+
+Goaz checks for insecure security group settings:
+
+```shell
+goaz nsg --subscriptionId <subscription ID> -A
+```
+
