@@ -21,13 +21,13 @@ Goaz checks the following types of Azure storage:
 To perform an audit of all storage types listed above type the following:
 
 ```shell
-goaz audit --subscriptionId <subscription ID> -A
+goaz storage --subscriptionId <subscription ID> -A
 ```
 
 You can also specify the resource group if desired:
 
 ```shell
-goaz audit --subscriptionId <subscription ID> --resourceGroup <resource group name> -A
+goaz storage --subscriptionId <subscription ID> --resourceGroup <resource group name> -A
 ```
 
 #### Stalking Queues
@@ -37,7 +37,7 @@ Goaz can also monitor storage queues by "peeking" into any given queue. Note tha
 To stalk a message queue type the following:
 
 ```shell
-go run main.go stalk -q --subscriptionId <subscription ID> --account <storage account name> -name outqueue --key <storage account key>
+goaz stalk -q --subscriptionId <subscription ID> --account <storage account name> -name outqueue --key <storage account key>
 ```
 
 ### Network Security Groups

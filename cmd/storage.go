@@ -28,7 +28,7 @@ var (
 	storageState StorageState
 
 	storageCmd = &cobra.Command{
-		Use:   "audit",
+		Use:   "storage",
 		Short: "audit storage",
 		Long:  `audit storage`,
 		Args: func(cmd *cobra.Command, args []string) error {
