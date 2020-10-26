@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/graphrbac/graphrbac"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"github.com/DharmaOfCode/goaz/utils"
+	"github.com/hex0punk/goaz/utils"
 	"github.com/spf13/cobra"
 	"log"
 	"time"

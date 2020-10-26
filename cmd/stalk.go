@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/DharmaOfCode/goaz/api"
+	"github.com/hex0punk/goaz/api"
 	"github.com/spf13/cobra"
 	"log"
 	"time"

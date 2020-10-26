@@ -1,6 +1,6 @@
 package main
 
-import "github.com/DharmaOfCode/goaz/cmd"
+import "github.com/hex0punk/goaz/cmd"
 
 func main() {
 	cmd.Execute()

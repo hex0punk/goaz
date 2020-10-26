@@ -8,8 +8,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"github.com/DharmaOfCode/goaz/api"
-	"github.com/DharmaOfCode/goaz/utils"
+	"github.com/hex0punk/goaz/api"
+	"github.com/hex0punk/goaz/utils"
 	"github.com/spf13/cobra"
 	"log"
 	"time"
@@ -126,7 +126,7 @@ func (s *StorageState) Audit() {
 
 			printer.Data("\t- Keys:\n")
 			// Print keys
-			keys, err := storageAccountsClient.ListKeys(ctx, rgName, *acc.Name)
+			keys, err := storageAccountsClient.ListKeys(ctx, rgName, *acc.Name, storage.Kerb)
 			if err != nil {
 				printer.Warning("\t\t[+] Unable to read keys\n")
 			}

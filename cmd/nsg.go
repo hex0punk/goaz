@@ -6,7 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgmt/network"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"github.com/DharmaOfCode/goaz/utils"
+	"github.com/hex0punk/goaz/utils"
 	"github.com/spf13/cobra"
 	"log"
 	"strconv"

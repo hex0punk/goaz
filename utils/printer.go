@@ -1,7 +1,7 @@
 package printer
 
 import (
-	"github.com/DharmaOfCode/color"
+	"github.com/hex0punk/color"
 	"github.com/olekukonko/tablewriter"
 	"os"
 	"fmt"
