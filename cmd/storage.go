@@ -63,6 +63,7 @@ func (s *StorageState) Audit() {
 	storageAccountsClient := storage.NewAccountsClient(SubscriptionId)
 	blobStorageClient := storage.NewBlobContainersClient(SubscriptionId)
 	authorizer, err := auth.NewAuthorizerFromCLI()
+
 	if err != nil {
 		log.Println(err)
 	}
@@ -76,6 +77,9 @@ func (s *StorageState) Audit() {
 
 	// Get the groups first, so we can match groups and storage accounts
 	groupIterator, err := groupsClient.ListComplete(ctx, "", nil)
+	if err != nil {
+		log.Println(err)
+	}
 	var groups []string
 	if s.ResourceGroup != ""{
 		groups = append(groups, s.ResourceGroup)
@@ -91,6 +95,7 @@ func (s *StorageState) Audit() {
 
 	// Get storage accounts per resource group
 	for _, rgName := range groups {
+		fmt.Println(rgName)
 		storageAccounts, err := storageAccountsClient.ListByResourceGroup(ctx, rgName)
 		if err != nil {
 			log.Println(err)

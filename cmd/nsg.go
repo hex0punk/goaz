@@ -106,7 +106,18 @@ func (s *NSGState) Audit() {
 				if s.Compact && ruleAssessment == ""{
 					continue
 				}
-				row := []string{string(strconv.FormatInt(int64(*rule.Priority),10)),*rule.Name,string(rule.Access),string(rule.Direction), *rule.SourceAddressPrefix, *rule.SourcePortRange, *rule.DestinationAddressPrefix, *rule.DestinationPortRange, ruleAssessment}
+				dstPorts := ""
+				if rule.DestinationPortRange != nil{
+					dstPorts = *rule.DestinationPortRange
+				}
+				row := []string{
+					strconv.FormatInt(int64(*rule.Priority),10),
+					*rule.Name,string(rule.Access),string(rule.Direction),
+					*rule.SourceAddressPrefix, *rule.SourcePortRange,
+					*rule.DestinationAddressPrefix,
+					dstPorts,
+					ruleAssessment,
+				}
 				resultTable.Rows = append(resultTable.Rows, row)
 			}
 		}
@@ -146,8 +157,8 @@ func getRuleAssessment(rule network.SecurityRule) string {
 		insecurePort = isPortInsecure(i)
 	}
 
-	if string(rule.Direction) == "Inbound" && *rule.SourceAddressPrefix == "*"{
-		if *rule.DestinationPortRange == "*" || insecurePort{
+	if string(rule.Direction) == "Inbound" && (*rule.SourceAddressPrefix == "*" || *rule.SourceAddressPrefix == "Internet") {
+		if *rule.DestinationPortRange == "*" || insecurePort {
 			//r,_ := rule.MarshalJSON()
 			//log.Println(string(r))
 			return "Insecure Port"
