@@ -40,11 +40,31 @@ To stalk a message queue type the following:
 goaz stalk -q --subscriptionId <subscription ID> --account <storage account name> -name outqueue --key <storage account key>
 ```
 
-### Network Security Groups
+### Virtual Machine Scale sets
+
+Very limited information on scale sets:
+
+```shell
+goaz vms --subscriptionId <subscription ID>
+```
+
+### Network
+
+Provided by `goaz net`
+
+#### Network Security Groups
 
 Goaz checks for insecure security group settings:
 
 ```shell
-goaz nsg --subscriptionId <subscription ID> -A
+goaz net nsg --subscriptionId <subscription ID>
+```
+
+#### Public IPs
+
+Goaz checks for Azure public IPs:
+
+```shell
+goaz net pips --subscriptionId <subscription ID>
 ```
 
