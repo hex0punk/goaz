@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgmt/network"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
@@ -15,37 +14,28 @@ import (
 )
 
 type NSGState struct {
-	AuditAll            bool
 	Compact				bool
 }
 
 var (
-	insecurePorts   = []int{ 22, 3389, 21, 20, 23}
+	insecurePorts = []int{ 22, 3389, 21, 20, 23}
 	nsgState      NSGState
 
 	nsgCmd = &cobra.Command{
 		Use:   "nsg",
 		Short: "nsg",
-		Long:  `audit nsg`,
+		Long:  `nsg`,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if SubscriptionId == "" {
-				return errors.New("please specify the subscription ID")
-			}
 			return nil
 		},
 		Run: func (cmd *cobra.Command, args []string) {
-			if nsgState.AuditAll {
-				nsgState.Audit()
-			}
+			nsgState.Audit()
 		},
 	}
 )
 
 func init() {
-	nsgCmd.Flags().BoolVarP(&nsgState.AuditAll, "Audit", "A", false, "-A")
-	nsgCmd.Flags().BoolVarP(&nsgState.Compact, "Compact", "C", false, "-C")
-
-	rootCmd.AddCommand(nsgCmd)
+	netCmd.AddCommand(nsgCmd)
 }
 
 
@@ -172,7 +162,7 @@ func getRuleAssessment(rule network.SecurityRule) string {
 }
 
 func isPortInsecure(port int) bool{
-	for _, p := range insecurePorts{
+	for _, p := range insecurePorts {
 		if p == port{
 			return true
 		}
