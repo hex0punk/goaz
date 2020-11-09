@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/hex0punk/goaz/api"
@@ -59,7 +58,6 @@ func init() {
 
 
 func (s *StorageState) Audit() {
-	groupsClient := resources.NewGroupsClient(SubscriptionId)
 	storageAccountsClient := storage.NewAccountsClient(SubscriptionId)
 	blobStorageClient := storage.NewBlobContainersClient(SubscriptionId)
 	authorizer, err := auth.NewAuthorizerFromCLI()
@@ -69,29 +67,12 @@ func (s *StorageState) Audit() {
 	}
 
 	storageAccountsClient.Authorizer = authorizer
-	groupsClient.Authorizer = authorizer
 	blobStorageClient.Authorizer = authorizer
 
 	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
 	defer cancel()
 
-	// Get the groups first, so we can match groups and storage accounts
-	groupIterator, err := groupsClient.ListComplete(ctx, "", nil)
-	if err != nil {
-		log.Println(err)
-	}
-	var groups []string
-	if s.ResourceGroup != ""{
-		groups = append(groups, s.ResourceGroup)
-	} else {
-		for list := groupIterator; list.NotDone(); err = list.NextWithContext(ctx) {
-			if err != nil {
-				log.Fatalf("got error: %s", err)
-			}
-			rgName := *list.Value().Name
-			groups = append(groups, rgName)
-		}
-	}
+	groups := api.GetResourceGroups(authorizer, SubscriptionId)
 
 	// Get storage accounts per resource group
 	for _, rgName := range groups {
@@ -175,14 +156,14 @@ func (s *StorageState) Audit() {
 				if keyStrings == nil{
 					continue
 				}
-				blobs, err := storageapi.ListBlobs(ctx, *acc.Name, containerName, keyStrings[0])
+				blobs, err := api.ListBlobs(ctx, *acc.Name, containerName, keyStrings[0])
 				if err != nil {
 					log.Fatalf("got error: %s", err)
 				}
 				printer.Data("\t\t- Blobs:\n")
 				for _, b := range blobs.Segment.BlobItems {
 					printer.InfoHeading("\t\t\t- Blob Name: %s\n", b.Name)
-					printer.Info("\t\t\t- URL: %s\n", storageapi.BlobURL(*acc.Name, containerName, b.Name))
+					printer.Info("\t\t\t- URL: %s\n", api.BlobURL(*acc.Name, containerName, b.Name))
 					printer.Info("\t\t\t- Content Type: %s\n", *b.Properties.ContentType)
 					printer.Info("\t\t\t- Type: %s\n", b.Properties.BlobType)
 					fmt.Println()
@@ -196,28 +177,28 @@ func (s *StorageState) Audit() {
 			// TODO: Get tables in container
 
 			//Get file shares.
-			shareDirectoriesResponse := storageapi.GetShareDirectories(ctx, *acc.Name, keyStrings[0])
+			shareDirectoriesResponse := api.GetShareDirectories(ctx, *acc.Name, keyStrings[0])
 			printer.Data("\t- Shares:\n")
 			for _, d := range shareDirectoriesResponse.ShareItems {
 				printer.InfoHeading("\t\t- Share Name: %s\n", d.Name)
-				shares, err := storageapi.ListFiles(ctx, *acc.Name, d.Name, keyStrings[0])
+				shares, err := api.ListFiles(ctx, *acc.Name, d.Name, keyStrings[0])
 				if err != nil {
 					log.Println(err)
 				}
 				printer.Data("\t\t- Files:\n")
 				for _, s := range shares.FileItems {
 					printer.InfoHeading("\t\t\t-File Name: %s\n", s.Name)
-					printer.Info("\t\t\t-URL: %s\n", storageapi.FileURL(*acc.Name, d.Name, s.Name))
+					printer.Info("\t\t\t-URL: %s\n", api.FileURL(*acc.Name, d.Name, s.Name))
 				}
 				fmt.Println()
 			}
 
 			// Get Queues
 			printer.Data("\t- Queues:\n")
-			queuesResponse := storageapi.ListQueues(ctx, *acc.Name, keyStrings[0])
+			queuesResponse := api.ListQueues(ctx, *acc.Name, keyStrings[0])
 			for _, q := range queuesResponse.QueueItems {
 				printer.InfoHeading("\t\t- Queue Name: %s\n", q.Name)
-				messages := storageapi.PeekMessages(ctx, *acc.Name, q.Name, keyStrings[0], 32)
+				messages := api.PeekMessages(ctx, *acc.Name, q.Name, keyStrings[0], 32)
 				if err != nil {
 					log.Println(err)
 				}

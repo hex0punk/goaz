@@ -1,4 +1,4 @@
-package storageapi
+package api
 
 import (
 	"context"

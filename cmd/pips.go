@@ -3,11 +3,12 @@ package cmd
 import (
 	"context"
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgmt/network"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/hex0punk/goaz/api"
 	"github.com/hex0punk/goaz/utils"
 	"github.com/spf13/cobra"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -36,32 +37,20 @@ func init() {
 
 
 func (s *PipsState) Audit() {
-	groupsClient := resources.NewGroupsClient(SubscriptionId)
 	netClient := network.NewPublicIPAddressesClient(SubscriptionId)
 	authorizer, err := auth.NewAuthorizerFromCLI()
 	if err != nil {
 		log.Println(err)
 	}
 
-	groupsClient.Authorizer = authorizer
-	netClient.Authorizer = authorizer
-
 	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
 	defer cancel()
 
 	// Get the groups first
-	groupIterator, err := groupsClient.ListComplete(ctx, "", nil)
-	var groups []string
-	for list := groupIterator; list.NotDone(); err = list.NextWithContext(ctx) {
-		if err != nil {
-			log.Fatalf("got error: %s\n", err)
-		}
-		rgName := *list.Value().Name
-		groups = append(groups, rgName)
-	}
+	groups := api.GetResourceGroups(authorizer, SubscriptionId)
 
 
-	columns := []string{"NAME","PUBLIC IP","LOCATION"}
+	columns := []string{"NAME","PUBLIC IP","LOCATION", "DOMAIN", "Anti-DDoS"}
 	printer.Data("********Public IPs********\n")
 
 	var publicIPList []network.PublicIPAddress
@@ -87,10 +76,22 @@ func (s *PipsState) Audit() {
 		publicAddress := *ip.IPAddress
 		location := *ip.Location
 
+		domain := ""
+		if ip.DNSSettings != nil {
+			domain = *ip.DNSSettings.Fqdn
+		}
+
+		doSProtected := "False"
+		if ip.DdosSettings != nil {
+			doSProtected = strconv.FormatBool(*ip.DdosSettings.ProtectedIP)
+		}
+
 		row := []string{
 			ipName,
 			publicAddress,
 			location,
+			domain,
+			doSProtected,
 		}
 		resultTable.Rows = append(resultTable.Rows, row)
 	}

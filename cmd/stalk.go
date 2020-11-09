@@ -59,7 +59,7 @@ func stalkQueue() {
 	lastMessage := ""
 	for {
 		fmt.Printf(".")
-		messages := storageapi.PeekMessages(ctx, stalkState.AccountName, stalkState.QueueName, stalkState.Key, 1)
+		messages := api.PeekMessages(ctx, stalkState.AccountName, stalkState.QueueName, stalkState.Key, 1)
 		if messages.NumMessages() > 0 {
 			data, err := base64.StdEncoding.DecodeString(messages.Message(int32(0)).Text)
 			if err != nil {

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-30/compute"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/hex0punk/goaz/api"
 	"github.com/hex0punk/goaz/utils"
 	"github.com/spf13/cobra"
 	"log"
@@ -45,29 +45,18 @@ func init() {
 
 
 func (s *VMState) Audit() {
-	groupsClient := resources.NewGroupsClient(SubscriptionId)
 	computeClient := compute.NewVirtualMachineScaleSetsClient(SubscriptionId)
 	authorizer, err := auth.NewAuthorizerFromCLI()
 	if err != nil {
 		log.Println(err)
 	}
-
-	groupsClient.Authorizer = authorizer
+	
 	computeClient.Authorizer = authorizer
 
 	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
 	defer cancel()
 
-	// Get the groups first
-	groupIterator, err := groupsClient.ListComplete(ctx, "", nil)
-	var groups []string
-	for list := groupIterator; list.NotDone(); err = list.NextWithContext(ctx) {
-		if err != nil {
-			log.Fatalf("got error: %s\n", err)
-		}
-		rgName := *list.Value().Name
-		groups = append(groups, rgName)
-	}
+	groups := api.GetResourceGroups(authorizer, SubscriptionId)
 
 
 	columns := []string{"NAME","UUID"}
