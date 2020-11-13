@@ -77,7 +77,6 @@ func (s *AksState) Audit() {
 	for _, aks := range aksList {
 		name := *aks.Name
 		fqdn := *aks.Fqdn
-
 		row := []string{
 			name,
 			fqdn,
