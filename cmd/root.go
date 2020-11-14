@@ -27,7 +27,7 @@ var (
 func init() {
 	rootCmd.PersistentFlags().StringVar(&SubscriptionId, "subscriptionId", "", "subscription ID to use")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
-	storageCmd.Flags().BoolVarP(&PrintMarkdown, "md", "md", false, "Print markdown format")
+	rootCmd.PersistentFlags().BoolVarP(&PrintMarkdown, "markdown", "m", false, "Print markdown format")
 }
 
 func Execute() {
