@@ -81,7 +81,7 @@ func (s *PipsState) Audit() {
 			domain = *ip.DNSSettings.Fqdn
 		}
 
-		doSProtected := "False"
+		doSProtected := "!false"
 		if ip.DdosSettings != nil {
 			doSProtected = strconv.FormatBool(*ip.DdosSettings.ProtectedIP)
 		}

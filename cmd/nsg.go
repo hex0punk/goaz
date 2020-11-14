@@ -143,7 +143,7 @@ func getRuleAssessment(rule network.SecurityRule) string {
 			//log.Println(string(r))
 			return "Insecure Port"
 		}
-		return "Public Access"
+		return "!Public Access"
 	}
 	if *rule.SourceAddressPrefix == "*" && insecurePort && string(rule.Direction) == "Inbound"{
 		return "Insecure"

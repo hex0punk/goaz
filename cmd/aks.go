@@ -74,6 +74,7 @@ func (s *AksState) Audit() {
 	resultTable := printer.ResultTable{
 		Columns: columns,
 	}
+	// TODO: evaluate whether VNET and FW rules are in effect
 	for _, aks := range aksList {
 		name := *aks.Name
 		fqdn := *aks.Fqdn
