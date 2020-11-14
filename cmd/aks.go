@@ -85,6 +85,6 @@ func (s *AksState) Audit() {
 		resultTable.Rows = append(resultTable.Rows, row)
 	}
 	if len(resultTable.Rows) > 0 {
-		printer.PrintTable(&resultTable)
+		printer.PrintTable(&resultTable, PrintMarkdown)
 	}
 }

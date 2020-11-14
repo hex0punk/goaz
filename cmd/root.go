@@ -10,6 +10,7 @@ import (
 var (
 	Verbose        bool
 	SubscriptionId string
+	PrintMarkdown  bool
 	rootCmd        = &cobra.Command{
 		Use:   "goaz",
 		Short: "Azure security auditor and stalker",
@@ -26,6 +27,7 @@ var (
 func init() {
 	rootCmd.PersistentFlags().StringVar(&SubscriptionId, "subscriptionId", "", "subscription ID to use")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
+	storageCmd.Flags().BoolVarP(&PrintMarkdown, "md", "md", false, "Print markdown format")
 }
 
 func Execute() {

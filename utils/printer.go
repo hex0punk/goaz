@@ -20,12 +20,17 @@ var	(
 	InfoHeading = color.New(color.FgGreen).Add(color.Underline).PrintfFunc()
 )
 
-func PrintTable(result *ResultTable){
+func PrintTable(result *ResultTable, useMD bool){
 	fmt.Println()
 	PrintRuler()
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(result.Columns)
-	table.SetBorder(false)
+	if useMD {
+		table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+		table.SetCenterSeparator("|")
+	} else {
+		table.SetBorder(false)
+	}
 
 	var headerColors []tablewriter.Colors
 	for i, _ := range result.Columns{

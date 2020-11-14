@@ -94,6 +94,6 @@ func (s *SBusState) Audit() {
 	}
 
 	if len(resultTable.Rows) > 0 {
-		printer.PrintTable(&resultTable)
+		printer.PrintTable(&resultTable, PrintMarkdown)
 	}
 }

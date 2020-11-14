@@ -102,7 +102,7 @@ func (s *NSGState) Audit() {
 			}
 		}
 		if len(resultTable.Rows) > 0 {
-			printer.PrintTable(&resultTable)
+			printer.PrintTable(&resultTable, PrintMarkdown)
 		}
 	}
 }

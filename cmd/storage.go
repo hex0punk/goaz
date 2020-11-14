@@ -51,7 +51,6 @@ func init() {
 	storageCmd.Flags().StringVar(&storageState.ResourceGroup, "resourceGroup", "", "Resource Group (optional)")
 	storageCmd.Flags().StringVar(&storageState.Key, "key", "", "Primary key for queue")
 	storageCmd.Flags().BoolVarP(&storageState.All, "Audit all storage options", "A", false, "-A")
-	storageCmd.Flags().BoolVarP(&storageState.Stalk, "Stalk queue", "S", false, "-S")
 
 	rootCmd.AddCommand(storageCmd)
 }
