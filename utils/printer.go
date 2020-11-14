@@ -37,21 +37,19 @@ func PrintTable(result *ResultTable){
 	}
 	table.SetHeaderColor(headerColors...)
 
-	var rowColors []tablewriter.Colors
-	for i, _ := range result.Columns{
-		if i == 0{
-			rowColors = append(rowColors, tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiBlueColor})
-		} else {
-			rowColors = append(rowColors, tablewriter.Colors{tablewriter.Bold, tablewriter.FgGreenColor})
+	for i, row := range result.Rows {
+		var colors []tablewriter.Colors
+		for idx, rowItem := range row {
+			if rowItem[:1] == "!"{
+				result.Rows[i][idx] = rowItem[1:]
+				colors = append(colors, tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiRedColor})
+			} else {
+				colors = append(colors, tablewriter.Colors{tablewriter.Normal, tablewriter.FgWhiteColor})
+			}
 		}
+		table.Rich(row, colors)
 	}
-	table.SetColumnColor(rowColors...)
-
-	//table.SetColumnColor(tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiBlackColor},
-	//	tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiRedColor})
-
-
-	table.AppendBulk(result.Rows)
+	//table.AppendBulk(result.Rows)
 	table.Render()
 }
 

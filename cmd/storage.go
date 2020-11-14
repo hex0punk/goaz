@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
-	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/hex0punk/goaz/api"
 	"github.com/hex0punk/goaz/utils"
@@ -61,7 +60,6 @@ func init() {
 func (s *StorageState) Audit() {
 	storageAccountsClient := storage.NewAccountsClient(SubscriptionId)
 	blobStorageClient := storage.NewBlobContainersClient(SubscriptionId)
-	sbNamespaceClient := servicebus.NewNamespacesClient(SubscriptionId)
 
 	authorizer, err := auth.NewAuthorizerFromCLI()
 	if err != nil {
@@ -70,7 +68,6 @@ func (s *StorageState) Audit() {
 
 	storageAccountsClient.Authorizer = authorizer
 	blobStorageClient.Authorizer = authorizer
-	sbNamespaceClient.Authorizer = authorizer
 
 	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
 	defer cancel()
@@ -85,12 +82,11 @@ func (s *StorageState) Audit() {
 			log.Println(err)
 		}
 
-		sbNS, err := sbNamespaceClient.ListByResourceGroup(ctx, rgName)
 		if err != nil {
 			log.Println(err)
 		}
 
-		if len(*storageAccounts.Value) == 0 && len(sbNS.Values()) == 0 {
+		if len(*storageAccounts.Value) == 0 {
 			continue
 		}
 
@@ -224,37 +220,6 @@ func (s *StorageState) Audit() {
 			}
 
 			fmt.Print("\n\n")
-		}
-
-		printer.Info("Service Bus\n")
-		fmt.Println("========================")
-		for _, sb := range sbNS.Values() {
-			name := *sb.Name
-			redundant := *sb.SBNamespaceProperties.ZoneRedundant
-			//encryption := *sb.SBNamespaceProperties.Encryption
-			hasVnetRules := false
-			vnetRulesPage, err := sbNamespaceClient.ListVirtualNetworkRules(ctx, rgName, name)
-			if err != nil {
-				log.Println("[+] ", err.Error())
-			}
-			if &vnetRulesPage != nil {
-				vnetRules := vnetRulesPage.Values()
-				if len(vnetRules) > 0 {
-					hasVnetRules = true
-				}
-			}
-			printer.InfoHeading("\t\t\t-Service Bus Name: %s\n", name)
-			if !redundant {
-				printer.Danger("\t\t\t- Service bus  not redundant\n")
-			} else {
-				printer.Info("\t\t\t- Service bus is redundant\n")
-			}
-
-			if !hasVnetRules {
-				printer.Danger("\t\t\t- no VNET rules configured\n")
-			} else {
-				printer.Info("\t\t\t- Has VNET rules configured\n")
-			}
 		}
 	}
 }
