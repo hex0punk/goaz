@@ -13,5 +13,6 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.3.0 // indirect
 	github.com/hex0punk/color v1.7.0
 	github.com/olekukonko/tablewriter v0.0.4
+	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/spf13/cobra v1.1.1
 )
