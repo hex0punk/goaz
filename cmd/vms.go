@@ -22,7 +22,7 @@ var (
 	vmCmd = &cobra.Command{
 		Use:   "vm",
 		Short: "vm",
-		Long:  `audit vm`,
+		Long:  `vm`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if SubscriptionId == "" {
 				return errors.New("please specify the subscription ID")
@@ -59,34 +59,50 @@ func (s *VMState) Audit() {
 	groups := api.GetResourceGroups(authorizer, SubscriptionId)
 
 
-	columns := []string{"NAME","UUID"}
-	printer.Data("********Public IPs********\n")
-
-	var vmScaleSetsList []compute.VirtualMachineScaleSet
-	for _, rgName := range groups {
-		vmssIterator, err := computeClient.ListComplete(ctx, rgName)
-		if err != nil{
-			log.Println(err)
-		}
-
-		for list := vmssIterator; list.NotDone(); err = list.NextWithContext(ctx) {
-			if err != nil {
-				log.Fatalf("got error: %s\n", err)
-			}
-			vmScaleSetsList = append(vmScaleSetsList, list.Value())
-		}
-	}
-
+	columns := []string{"NAME","RESOURCE GROUP", "HOST ENCRYPTION", "BOOT DIAGNOSTICS", "SECURITY GROUPS"}
 	resultTable := printer.ResultTable{
 		Columns: columns,
 	}
-	for _, vmss := range vmScaleSetsList {
-		name := *vmss.Name
-		row := []string{
-			name,
-			*vmss.VirtualMachineScaleSetProperties.UniqueID,
+	printer.Data("********VM Scale Sets********\n")
+
+	for _, rgName := range groups {
+		vmScaleSetsList, err := computeClient.List(ctx, rgName)
+		if err != nil{
+			log.Println(err)
 		}
-		resultTable.Rows = append(resultTable.Rows, row)
+		for _, vmss := range vmScaleSetsList.Values() {
+			name := *vmss.Name
+			vmProfile := vmss.VirtualMachineScaleSetProperties.VirtualMachineProfile
+			encryptionAtHost := "!false"
+			bootDiagnostics := "!false"
+			if vmProfile.SecurityProfile != nil && *vmProfile.SecurityProfile.EncryptionAtHost {
+				encryptionAtHost = "true"
+			}
+			if vmProfile.SecurityProfile != nil && !*vmProfile.DiagnosticsProfile.BootDiagnostics.Enabled {
+				bootDiagnostics = "true"
+			}
+			securityGroups := "!None"
+			sgLengh := len(*vmProfile.NetworkProfile.NetworkInterfaceConfigurations)
+			if sgLengh > 0 {
+				securityGroups = ""
+				for i, sg := range *vmProfile.NetworkProfile.NetworkInterfaceConfigurations {
+					if i < sgLengh - 1 {
+						securityGroups = securityGroups + *sg.Name + ","
+					} else {
+						securityGroups = securityGroups + *sg.Name
+					}
+				}
+			}
+
+			row := []string{
+				name,
+				rgName,
+				encryptionAtHost,
+				bootDiagnostics,
+				securityGroups,
+			}
+			resultTable.Rows = append(resultTable.Rows, row)
+		}
 	}
 	if len(resultTable.Rows) > 0 {
 		printer.PrintTable(&resultTable, PrintMarkdown)
